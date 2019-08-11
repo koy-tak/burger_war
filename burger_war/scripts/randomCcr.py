@@ -24,15 +24,15 @@ class RandomBot(AbstractCcr):
 
     def find_red_ball(self):
         hsv_img = cv2.cvtColor(self.img_orig, cv2.COLOR_BGR2HSV)
-        color_min = np.array([0,0,100])
-        color_max = np.array([100,100,255])
+        color_min = np.array([0,100,150])
+        color_max = np.array([50,255,255])
         color_mask = cv2.inRange(hsv_img, color_min, color_max)
-        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/color_mask.bmp", color_mask)
-#        bin_img = cv2.bitwise_and(self.img_orig, self.img_orig, mask = color_mask)
-        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/bin.bmp", bin_img)
-#        bin_img = cv2.cvtColor(bin_img, cv2.COLOR_BGR2GRAY)
+#        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/color_mask.bmp", color_mask)
+        bin_img = cv2.bitwise_and(self.img_orig, self.img_orig, mask = color_mask)
+#        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/bin.bmp", bin_img)
+        bin_img = cv2.cvtColor(bin_img, cv2.COLOR_BGR2GRAY)
         nLabels, label_img, data, center = cv2.connectedComponentsWithStats(bin_img)
-        #cv2.imwrite("/home/koy/catkin_ws/src/burger_war/label.bmp", label_img)
+#        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/label.bmp", label_img)
 #        print("Labeling:", nLabels)
 #        for i in range(nLabels - 1):
 #            print(data[i])
@@ -45,14 +45,20 @@ class RandomBot(AbstractCcr):
         size_max_y = 0
         size_max_w = 0
         size_max_h = 0
-        for i in range(nLabels - 1):
-            if data[i].size > size_max:
-                size_max_x, size_max_y, size_max_w, size_max_h, size_max = data[i]
-                size_max_idx = i
+        for i in range(1, nLabels - 1):
+            x, y, w, h, size = data[i]
+            print("Labeling: Loop", i, nLabels, size_max, size)
+            if size > size_max:
+                size_max_x = x
+                size_max_y = y
+                size_max_w = w
+                size_max_h = h
+                size_max = size
+#                print("Labeling: ", i, nLabels, size_max_x, size_max_y, size_max_w, size_max_h, size_max)
 
-        hrz = float(size_max_x - 320) / 640.0
-        vrt = float(size_max_y - 240) / 480.0
-        print("hrz=", hrz, size_max_x, " vrt=", vrt, size_max_y)
+        hrz = float(size_max_x + size_max_w/2 - 320) / 320.0
+        vrt = float(size_max_y + size_max_h/2 - 240) / 240.0
+#        print("hrz=", hrz, size_max_x, " vrt=", vrt, size_max_y)
 
         return (hrz, vrt)
 
