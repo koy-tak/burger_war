@@ -51,9 +51,10 @@ class AbstractCcr(object):
         if use_camera:
             # for convert image topic to opencv obj
             self.img = None
+            self.img_cntr = 0
             self.camera_preview = camera_preview
             self.bridge = CvBridge()
-            self.image_sub = rospy.Subscriber('camera/image_raw', Image, self.imageCallback)
+            self.image_sub = rospy.Subscriber('image_raw', Image, self.imageCallback)
 
     # lidar scan topic call back sample
     # update lidar scan state
@@ -87,6 +88,7 @@ class AbstractCcr(object):
     def imageCallback(self, data):
         try:
             self.img = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            self.img_cntr = self.img_cntr + 1
         except CvBridgeError as e:
             print(e)
 
