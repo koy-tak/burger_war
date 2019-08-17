@@ -75,6 +75,11 @@ class RandomBot(AbstractCcr):
 	img_cntr_prev = 0
 	lidar_cntr_prev = 0
 
+#        self.img_orig = cv2.imread("/home/koy/catkin_ws/src/burger_war/sample.png")
+#        self.img_orig = cv2.imread("/home/koy/catkin_ws/src/burger_war/red.png")
+#        print(self.img_orig)
+#        self.img_cntr = 1
+
         while not rospy.is_shutdown():
 #            if self.left_bumper or self.right_bumper:
 #                update_time = time.time()
@@ -101,44 +106,44 @@ class RandomBot(AbstractCcr):
 		    print(hrz, vrt)
 
                 value = random.randint(1,1000)
-                print(value)
+#                print(value)
 
                 if hrz == 0:
                     x = 0.4
                     th = 0
                     update_time = time.time()
-                    print("A")
+#                    print("A")
                 elif hrz == -2:
 		    if time.time() - update_time > UPDATE_FREQUENCY:
                         update_time = time.time()
                         if value < 500:
                             x = 0.4
                             th = 0
-                            print("B")
+#                            print("B")
                         elif value < 750:
                             x = 0
                             th = 2
-                            print("C")
+#                            print("C")
                         elif value < 1000:
                             x = 0
                             th = -2
-                            print("D")
+#                            print("D")
                         else:
                            x = 0
                            th = 0
-                           print("E")
+#                           print("E")
                 elif hrz < 0:
                     x = 0.4
                     th = 0.1
-                    print("F")
+#                    print("F")
                 elif hrz > 0:
                     x = 0.4
                     th = -0.1
-                    print("G")
+#                    print("G")
                 else:
                     x = 0
                     th = 0
-                    print("H")
+#                    print("H")
 
 
             twist = Twist()

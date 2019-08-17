@@ -3,7 +3,7 @@
 import rospy
 from abc import ABCMeta, abstractmethod
 from geometry_msgs.msg import Twist
-from ccr_msgs.msg import Bumper
+#from ccr_msgs.msg import Bumper
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
@@ -21,6 +21,7 @@ class AbstractCcr(object):
         # velocity publisher
         self.vel_pub = rospy.Publisher('cmd_vel', Twist,queue_size=1)
 
+        self.lidar_cntr = 0
         # lidar scan subscriber
         if use_lidar:
             self.scan = LaserScan()
@@ -41,17 +42,17 @@ class AbstractCcr(object):
         # bumper subscribre
         if use_bumper:
             # bumper state
-            self.bumper = Bumper()
+#            self.bumper = Bumper()
             self.left_bumper = False
             self.right_bumper = False
-            self.bumper_sub = rospy.Subscriber('bumper', Bumper, self.bumperCallback)
+#            self.bumper_sub = rospy.Subscriber('bumper', Bumper, self.bumperCallback)
 
+        self.img_cntr = 0
         # camera subscribver
         # please uncoment out if you use camera
         if use_camera:
             # for convert image topic to opencv obj
             self.img = None
-            self.img_cntr = 0
             self.camera_preview = camera_preview
             self.bridge = CvBridge()
             self.image_sub = rospy.Subscriber('image_raw', Image, self.imageCallback)
@@ -79,9 +80,9 @@ class AbstractCcr(object):
 
     # bumper topic call back sample
     # update bumper state
-    def bumperCallback(self, data):
-        self.left_bumper = data.left.state
-        self.right_bumper = data.right.state
+#    def bumperCallback(self, data):
+#        self.left_bumper = data.left.state
+#        self.right_bumper = data.right.state
 
     # camera image call back sample
     # comvert image topic to opencv object and show
