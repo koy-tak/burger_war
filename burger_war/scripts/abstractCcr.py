@@ -61,6 +61,7 @@ class AbstractCcr(object):
     # update lidar scan state
     def lidarCallback(self, data):
         self.scan = data
+	self.lidar_cntr = self.lidar_cntr + 1
 
     # optical  scan topic call back sample
     # update lidar scan state

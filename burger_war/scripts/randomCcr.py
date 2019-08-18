@@ -5,9 +5,16 @@ import rospkg
 import random
 import time
 import numpy as np
+from enum import Enum
 
 from abstractCcr import *
 from geometry_msgs.msg import Twist
+
+class BotState(Enum):
+    SEARCHING = 1
+    APPROACHING = 2
+    AIMING = 3
+    AIMING_REVERT = 4
 
 class RandomBot(AbstractCcr):
     '''
@@ -80,71 +87,144 @@ class RandomBot(AbstractCcr):
 #        print(self.img_orig)
 #        self.img_cntr = 1
 
+	bot_state = BotState.SEARCHING
+	isBumperHit = False
+	hrz = -2.0
+	vrt = -2.0
+	prev_hrz = -2.0
+	prev_vrt = -2.0
+	prev_valid_vrt = -2.0
         while not rospy.is_shutdown():
-#            if self.left_bumper or self.right_bumper:
-#                update_time = time.time()
-#                rospy.loginfo('bumper hit!!')
-#                x = -0.2
-#                th = 0
-
-	    if self.lidar_cntr > 0 and self.scan.ranges[0] < 0.2:
-                update_time = time.time()
-                rospy.loginfo('bumper hit!!')
-                x = -0.2
-		if self.lidar_cntr % 2 == 0:
-                    th = 2
+	    if self.lidar_cntr != lidar_cntr_prev:
+		lidar_cntr_prev = self.lidar_cntr
+		if self.scan.ranges[0] < 0.2 or self.scan.ranges[10] < 0.2 or self.scan.ranges[350] < 0.2:
+		    isBumperHit = True
+#		    rospy.loginfo('bumper hit!!')
 		else:
-                    th = -2
+		    isBumperHit = False
+
+
+	    isImgProcUpdated = False
+	    if self.img_cntr != img_cntr_prev:
+		img_cntr_prev = self.img_cntr
+		isImgProcUpdated = True
+		prev_hrz = hrz
+		prev_vrt = vrt
+		if prev_vrt != -2.0:
+		    prev_valid_vrt = prev_vrt
+		hrz, vrt = self.find_red_ball()
+#		print(hrz, vrt)
+
+	    value = random.randint(1,1000)
+#	    print(value)
+
+	    if isBumperHit == True:
+                update_time = time.time()
+#                rospy.loginfo('bumper hit!!')
+                x = -0.2
+		if value < 500:
+                    th = 0.2
+		else:
+                    th = -0.2
+                #print("BUMPER", self.scan.ranges[0], self.scan.ranges[10], self.scan.ranges[350], x, th)
+#		print("A", x, th)
+		
+	    elif bot_state == BotState.SEARCHING:
+		if hrz != -2.0:
+		    prev_hrz = -2.0
+		    prev_vrt = -2.0
+		    bot_state = BotState.APPROACHING
+		    update_time = 0
+#		    print("Bot State changed: SEARCHING -> APPROACHING", hrz)
+
+		elif prev_valid_vrt != -2.0 and prev_valid_vrt < -0.8:
+#		    print("Too close??", prev_valid_vrt)
+		    prev_valid_vrt = -2.0
+		    update_time = time.time()
+		    x = -1.0
+		    th = 0
+
+		elif time.time() - update_time > UPDATE_FREQUENCY * 2:
+		    update_time = time.time()
+		    if value < 400:
+			x = 0
+			th = 2
+#			print("B", x, th)
+		    elif value < 800:
+			x = 0
+			th = -2
+#			print("C", x, th)
+		    else:
+			x = 0.4
+			th = 0
+#			print("D", x, th)
+
+	    elif bot_state == BotState.APPROACHING:
+#		print("APPROACHING...", hrz, vrt)
+
+		if hrz == -2.0:
+#		    print("Bot State changed: APPROACHING -> SEARCHING", hrz)
+		    bot_state = BotState.SEARCHING
+
+		elif vrt < -0.9:
+#		    print("Bot State changed: APPROACHING -> AIMING", vrt)
+		    bot_state = BotState.AIMING
+		    update_time = time.time()
+
+		elif isImgProcUpdated == True and hrz == prev_hrz and vrt == prev_vrt:
+		    update_time = time.time()
+		    if value < 400:
+			x = 0
+			th = 0.2
+		    elif value < 800:
+			x = 0
+			th = -0.2
+		    else:
+			x = 0.2
+			th = 0
+#		    print("F", x, th)
+
+		elif time.time() - update_time > UPDATE_FREQUENCY:
+		    x = 0.5
+		    th = hrz * -0.5
+#		    print("G", x, th)
+
+	    elif bot_state == BotState.AIMING:
+		if time.time() - update_time > UPDATE_FREQUENCY:
+		    bot_state = BotState.AIMING_REVERT
+		    update_time = time.time()
+
+		else:
+		    x = 0.2
+		    th = 0.2
+#		    print("H", x, th)
+
+#		if hrz == -2.0:
+#		    print("Bot State changed: AIMING -> SEARCHING", hrz)
+#		    bot_state = BotState.SEARCHING
+
+#		if vrt > -0.7:
+#		    print("Bot State changed: AIMING -> APPROACHING", vrt)
+#		    bot_state = BotState.APPROACHING
+#		    update_time = 0
+
+#		else:
+#		    x = 1
+#		    th = 0
+#		    print("H", x, th)
+
+	    elif bot_state == BotState.AIMING_REVERT:
+		if time.time() - update_time > UPDATE_FREQUENCY:
+		    bot_state = BotState.APPROACHING
+
+		else:
+		    x = 0
+		    th = -0.2
+#		    print("I", x, th)
 
 	    else:
-		hrz = -2.0
-		vrt = -2.0
-
-		if self.img_cntr != img_cntr_prev:
-		    img_cntr_prev = self.img_cntr
-		    hrz, vrt = self.find_red_ball()
-		    print(hrz, vrt)
-
-                value = random.randint(1,1000)
-#                print(value)
-
-                if hrz == 0:
-                    x = 0.4
-                    th = 0
-                    update_time = time.time()
-#                    print("A")
-                elif hrz == -2:
-		    if time.time() - update_time > UPDATE_FREQUENCY:
-                        update_time = time.time()
-                        if value < 500:
-                            x = 0.4
-                            th = 0
-#                            print("B")
-                        elif value < 750:
-                            x = 0
-                            th = 2
-#                            print("C")
-                        elif value < 1000:
-                            x = 0
-                            th = -2
-#                            print("D")
-                        else:
-                           x = 0
-                           th = 0
-#                           print("E")
-                elif hrz < 0:
-                    x = 0.4
-                    th = 0.1
-#                    print("F")
-                elif hrz > 0:
-                    x = 0.4
-                    th = -0.1
-#                    print("G")
-                else:
-                    x = 0
-                    th = 0
-#                    print("H")
-
+		print("Impossible Path !!!")
+		
 
             twist = Twist()
             twist.linear.x = x; twist.linear.y = 0; twist.linear.z = 0
@@ -153,7 +233,9 @@ class RandomBot(AbstractCcr):
 
             r.sleep()
 
+
 if __name__ == '__main__':
     rospy.init_node('random_ccr')
     bot = RandomBot(use_bumper=True, use_camera=True, camera_preview=True, use_lidar=True)
     bot.strategy()
+
