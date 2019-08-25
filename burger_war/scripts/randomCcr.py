@@ -29,14 +29,15 @@ class RandomBot(AbstractCcr):
        back
     '''
 
-    def find_red_ball(self):
-	self.img = cv2.rectangle(self.img, (0,240), (640,480), (0,0,0), -1)
+    def find_specific_color(self, hue_min, hue_max):
+#        self.img = cv2.rectangle(self.img, (0,240), (640,480), (0,0,0), -1)
+        self.img = cv2.rectangle(self.img, (0,360), (640,480), (0,0,0), -1)
 #        color_min = np.array([0,0,100])
 #        color_max = np.array([100,100,255])
 #       color_mask = cv2.inRange(self.img, color_min, color_max)
         hsv_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
-        color_min = np.array([0,100,150])
-        color_max = np.array([50,255,255])
+        color_min = np.array([hue_min,100,150])
+        color_max = np.array([hue_max,255,255])
         color_mask = cv2.inRange(hsv_img, color_min, color_max)
 #        cv2.imwrite("/home/koy/catkin_ws/src/burger_war/color_mask.bmp", color_mask)
         bin_img = cv2.bitwise_and(self.img, self.img, mask = color_mask)
@@ -60,18 +61,29 @@ class RandomBot(AbstractCcr):
             x, y, w, h, size = data[i]
             if size > size_max:
                 size_max_x = x
-		size_max_y = y
-		size_max_w = w
-		size_max_h = h
-		size_max = size
+                size_max_y = y
+                size_max_w = w
+                size_max_h = h
+                size_max = size
 #                print("Labeling: ", i, size_max_x, size_max_y, size_max_w, size_max_h, size_max)
 
-        hrz = float(size_max_x + size_max_w/2 - 320) / 320.0
-        vrt = float(size_max_y + size_max_h/2 - 240) / 240.0
-#        print("hrz=", hrz, size_max_x, " vrt=", vrt, size_max_y)
+        hrz = -2.0
+        vrt = -2.0
+        img_w, img_h, img_c = self.img.shape
+        if size_max > (img_w * img_h) / 10000:
+            hrz = float(size_max_x + size_max_w/2 - img_w) / img_w
+            vrt = float(size_max_y + size_max_h/2 - img_h) / img_h
+#            print("hrz=", hrz, size_max_x, " vrt=", vrt, size_max_y)
+            self.img = cv2.rectangle(self.img, (size_max_x, size_max_y), (size_max_x+size_max_w, size_max_y+size_max_h), (0, 255, 255), 3)
 
         return (hrz, vrt)
 
+
+    def find_red_ball(self):
+        return self.find_specific_color(0, 50)
+
+    def find_green_marker(self):
+        return self.find_specific_color(50, 100)
 
     def strategy(self):
         r = rospy.Rate(100)
@@ -112,8 +124,16 @@ class RandomBot(AbstractCcr):
 		prev_vrt = vrt
 		if prev_vrt != -2.0:
 		    prev_valid_vrt = prev_vrt
-		hrz, vrt = self.find_red_ball()
-#		print(hrz, vrt)
+		hrz, vrt = self.find_green_marker()
+		logStr = "Green: ", hrz, vrt
+		rospy.loginfo(logStr)
+		if (hrz == -2.0):
+		    hrz, vrt = self.find_red_ball()
+#		    print("Red: ", hrz, vrt)
+		    logStr = "Red: ", hrz, vrt
+		    rospy.loginfo(logStr)
+		cv2.imshow("Image window", self.img)
+		cv2.waitKey(1)
 
 	    value = random.randint(1,1000)
 #	    print(value)
@@ -236,6 +256,6 @@ class RandomBot(AbstractCcr):
 
 if __name__ == '__main__':
     rospy.init_node('random_ccr')
-    bot = RandomBot(use_bumper=True, use_camera=True, camera_preview=True, use_lidar=True)
+    bot = RandomBot(use_bumper=True, use_camera=True, camera_preview=False, use_lidar=True)
     bot.strategy()
 
