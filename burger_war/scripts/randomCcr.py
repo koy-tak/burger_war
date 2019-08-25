@@ -133,8 +133,8 @@ class RandomBot(AbstractCcr):
 #		    print("Red: ", hrz, vrt)
 		    logStr = "Red: ", hrz, vrt
 		    rospy.loginfo(logStr)
-		cv2.imshow("Image window", self.img)
-		cv2.waitKey(1)
+#		cv2.imshow("Image window", self.img)
+#		cv2.waitKey(1)
 
 	    value = random.randint(1,1000)
 #	    print(value)
