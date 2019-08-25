@@ -110,8 +110,8 @@ class RandomBot(AbstractCcr):
         while not rospy.is_shutdown():
 	    if self.lidar_cntr != lidar_cntr_prev:
 		lidar_cntr_prev = self.lidar_cntr
-		print("LiDAR", self.scan.ranges[0], self.scan.ranges[10], self.scan.ranges[350], x, th)
-		if self.scan.ranges[0] < 0.2 or self.scan.ranges[10] < 0.2 or self.scan.ranges[350] < 0.2:
+#		print("LiDAR", self.scan.ranges[0], self.scan.ranges[10], self.scan.ranges[350], x, th)
+		if (self.scan.ranges[0] != 0 and self.scan.ranges[0] < 0.2) or (self.scan.ranges[10] != 0 and self.scan.ranges[10] < 0.2) or (self.scan.ranges[350] != 0 and self.scan.ranges[350] < 0.2):
 		    isBumperHit = True
 #		    rospy.loginfo('bumper hit!!')
 		else:
