@@ -11,10 +11,11 @@ from abstractCcr import *
 from geometry_msgs.msg import Twist
 
 class BotState(Enum):
-    SEARCHING = 1
-    APPROACHING = 2
-    AIMING = 3
-    AIMING_REVERT = 4
+    BOOT = 1
+    SEARCHING = 2
+    APPROACHING = 3
+    AIMING = 4
+    AIMING_REVERT = 5
 
 class RandomBot(AbstractCcr):
     '''
@@ -83,7 +84,7 @@ class RandomBot(AbstractCcr):
         return self.find_specific_color(0, 50)
 
     def find_green_marker(self):
-        return self.find_specific_color(50, 100)
+        return self.find_specific_color(50, 150)
 
     def strategy(self):
         r = rospy.Rate(100)
@@ -132,8 +133,8 @@ class RandomBot(AbstractCcr):
 #		    print("Red: ", hrz, vrt)
 		    logStr = "Red: ", hrz, vrt
 		    rospy.loginfo(logStr)
-		#cv2.imshow("Image window", self.img)
-		#cv2.waitKey(1)
+		cv2.imshow("Image window", self.img)
+		cv2.waitKey(1)
 
 	    value = random.randint(1,1000)
 #	    print(value)
@@ -149,6 +150,14 @@ class RandomBot(AbstractCcr):
                 #print("BUMPER", self.scan.ranges[0], self.scan.ranges[10], self.scan.ranges[350], x, th)
 #		print("A", x, th)
 		
+	    elif bot_state == BotState.BOOT:
+		x = 0.0
+		th = 0
+		if time.time() - update_time > UPDATE_FREQUENCY:
+		    print("Bot State changed: BOOT -> SEARCHING")
+		    update_time = time.time()
+		    bot_state = BotState.SEARCHING
+
 	    elif bot_state == BotState.SEARCHING:
 		if hrz != -2.0:
 		    prev_hrz = -2.0
@@ -161,21 +170,21 @@ class RandomBot(AbstractCcr):
 #		    print("Too close??", prev_valid_vrt)
 		    prev_valid_vrt = -2.0
 		    update_time = time.time()
-		    x = -1.0
+		    x = 0.2
 		    th = 0
 
 		elif time.time() - update_time > UPDATE_FREQUENCY * 2:
 		    update_time = time.time()
 		    if value < 400:
 			x = 0
-			th = 2
+			th = 0.2
 #			print("B", x, th)
 		    elif value < 800:
 			x = 0
-			th = -2
+			th = -0.2
 #			print("C", x, th)
 		    else:
-			x = 0.4
+			x = 0.2
 			th = 0
 #			print("D", x, th)
 
