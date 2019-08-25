@@ -84,7 +84,11 @@ class RandomBot(AbstractCcr):
         return self.find_specific_color(0, 50)
 
     def find_green_marker(self):
-        return self.find_specific_color(50, 150)
+        return self.find_specific_color(50, 100)
+    def find_green_marker2(self):
+        return self.find_specific_color(75, 125)
+    def find_green_marker3(self):
+        return self.find_specific_color(100, 150)
 
     def strategy(self):
         r = rospy.Rate(100)
@@ -110,6 +114,7 @@ class RandomBot(AbstractCcr):
         while not rospy.is_shutdown():
 	    if self.lidar_cntr != lidar_cntr_prev:
 		lidar_cntr_prev = self.lidar_cntr
+		print("BUMPER", self.scan.ranges[0], self.scan.ranges[10], self.scan.ranges[350], x, th)
 		if self.scan.ranges[0] < 0.2 or self.scan.ranges[10] < 0.2 or self.scan.ranges[350] < 0.2:
 		    isBumperHit = True
 #		    rospy.loginfo('bumper hit!!')
@@ -128,13 +133,19 @@ class RandomBot(AbstractCcr):
 		hrz, vrt = self.find_green_marker()
 		logStr = "Green: ", hrz, vrt
 		rospy.loginfo(logStr)
+		hrz, vrt = self.find_green_marker2()
+		logStr = "Green2: ", hrz, vrt
+		rospy.loginfo(logStr)
+		hrz, vrt = self.find_green_marker3()
+		logStr = "Green3: ", hrz, vrt
+		rospy.loginfo(logStr)
 		if (hrz == -2.0):
 		    hrz, vrt = self.find_red_ball()
 #		    print("Red: ", hrz, vrt)
 		    logStr = "Red: ", hrz, vrt
 		    rospy.loginfo(logStr)
-		cv2.imshow("Image window", self.img)
-		cv2.waitKey(1)
+#		cv2.imshow("Image window", self.img)
+#		cv2.waitKey(1)
 
 	    value = random.randint(1,1000)
 #	    print(value)
