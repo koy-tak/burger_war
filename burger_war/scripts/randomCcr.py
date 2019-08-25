@@ -81,12 +81,14 @@ class RandomBot(AbstractCcr):
 
 
     def find_red_ball(self):
-        return self.find_specific_color(0, 50)
+        return self.find_specific_color(0, 25)
 
     def find_green_marker(self):
-        return self.find_specific_color(50, 100)
+        return self.find_specific_color(25, 75)
+
     def find_green_marker2(self):
         return self.find_specific_color(75, 125)
+
     def find_green_marker3(self):
         return self.find_specific_color(100, 150)
 
